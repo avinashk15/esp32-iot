@@ -4,6 +4,10 @@
 #include <WiFi.h>
 #include <MQTT.h>
 
+
+#define LED_RED_PIN     22
+#define LED_YELLOW_PIN  23
+
 // PIR Initilization
 #define PUBLISH_INTERVAL 5
 #define MOTION_SENSOR_PIN 33
@@ -68,6 +72,9 @@ void setup()
   init_dht_sensor();
   // PIR 
   motion.begin();
+  //
+  pinMode(LED_RED_PIN,OUTPUT);
+  pinMode(LED_YELLOW_PIN,OUTPUT);
 
 }
 
@@ -218,6 +225,8 @@ void detect_motion(){
   if (motionStateChange >= 0) {
       Serial.print("Motion Detection : ");
       Serial.println(motionStateChange);
+      digitalWrite(LED_YELLOW_PIN,motionStateChange);
+
       // Publish data at every 100 milisecond 
       if (millis() - lastMillisMotionDetector > 100) {
         lastMillisMotionDetector = millis();

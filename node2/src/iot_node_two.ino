@@ -30,7 +30,7 @@ const char* access_control_topic = "/building1/room1/rfid";
 const char* door_unlock_topic = "/building1/room1/door";
 /////////////////
 
-
+#define LED_PIN 22
 void setup()
 {
   Serial.begin(9600);
@@ -40,6 +40,9 @@ void setup()
   init_mqtt();
   // init mfrc522 
   init_rfid();
+
+  //
+  pinMode(LED_PIN,OUTPUT);
 }
 
 void loop() {
@@ -76,6 +79,7 @@ void readRFID(void ) {
     nuidPICC[i] = rfid.uid.uidByte[i];
   }
 
+  digitalWrite(LED_PIN,HIGH);
   char str[9] = "";
 
   array_to_string(nuidPICC, 4, str);
@@ -92,6 +96,8 @@ void readRFID(void ) {
 
   // Stop encryption on PCD
   rfid.PCD_StopCrypto1();
+
+  digitalWrite(LED_PIN,LOW);
 
 }
 
