@@ -4,6 +4,15 @@
 
 #include "MFRC522.h"
 
+/*
+Vcc <-> 3V3 
+RST (Reset) <-> D0
+GND (Masse) <-> GND
+MISO (Master Input Slave Output) <-> 19
+MOSI (Master Output Slave Input) <-> 23
+SCK (Serial Clock) <-> 18
+SS/SDA (Slave select) <-> 5
+*/
 // RFID Initilization
 //Constants
 #define SS_PIN 5
