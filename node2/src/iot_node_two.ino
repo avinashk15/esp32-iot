@@ -12,16 +12,24 @@
 byte nuidPICC[4] = {0, 0, 0, 0};
 MFRC522::MIFARE_Key key;
 MFRC522 rfid = MFRC522(SS_PIN, RST_PIN);
-
+/*
+Vcc <-> 3V3 (or Vin(5V) depending on the module version)
+RST (Reset) <-> D0
+GND (Masse) <-> GND
+MISO (Master Input Slave Output) <-> 19
+MOSI (Master Output Slave Input) <-> 23
+SCK (Serial Clock) <-> 18
+SS/SDA (Slave select) <-> 5
+*/
 //////////////////
 // MQTT Inililization //
-const char ssid[] = "ssid";
-const char pass[] = "pass";
+const char ssid[] = "";
+const char pass[] = "";
 
 WiFiClient netClient;
 MQTTClient client;
 
-const char* mqtt_server_ip = "100.64.00.00" ;
+const char* mqtt_server_ip = "broker.hivemq.com" ;
 
 // Topics for sensor data
 const char* access_control_topic = "/building1/room1/rfid";
@@ -29,6 +37,9 @@ const char* access_control_topic = "/building1/room1/rfid";
 // Topics for actuators
 const char* door_unlock_topic = "/building1/room1/door";
 /////////////////
+unsigned long time_delay;
+const char* open_door = "Door Open";
+bool open_door_flag = false;
 
 #define LED_PIN 22
 void setup()
@@ -48,6 +59,11 @@ void setup()
 void loop() {
   start_mqtt();
   readRFID();
+  if(open_door_flag && (millis() - time_delay) > 5000){
+    digitalWrite(LED_PIN,LOW);
+    open_door_flag = false;
+    publish_data_mqtt(door_unlock_topic,"Door Close");
+  }
   delay(1);
 }
 
@@ -79,7 +95,6 @@ void readRFID(void ) {
     nuidPICC[i] = rfid.uid.uidByte[i];
   }
 
-  digitalWrite(LED_PIN,HIGH);
   char str[9] = "";
 
   array_to_string(nuidPICC, 4, str);
@@ -96,8 +111,6 @@ void readRFID(void ) {
 
   // Stop encryption on PCD
   rfid.PCD_StopCrypto1();
-
-  digitalWrite(LED_PIN,LOW);
 
 }
 
@@ -134,7 +147,16 @@ void connect() {
 
 void messageReceived(String &topic, String &payload) {
   Serial.println("incoming: " + topic + " - " + payload);
-
+  if(!strcmp(open_door,(char*)&payload)){
+      open_door_flag = true;
+      time_delay = millis();
+      digitalWrite(LED_PIN,HIGH);
+      Serial.println("Open door");
+  }else{
+      open_door_flag = false;
+      digitalWrite(LED_PIN,LOW);
+      Serial.println("Close door");
+  }
   // Note: Do not use the client in the callback to publish, subscribe or sending 
 }
 
