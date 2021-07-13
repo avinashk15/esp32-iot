@@ -5,8 +5,9 @@
 #include <MQTT.h>
 
 
-#define LED_RED_PIN     22
-#define LED_YELLOW_PIN  23
+#define LED_RED_PIN     23
+#define LED_YELLOW_PIN  22
+#define BUZZER  21
 
 // PIR Initilization
 #define PUBLISH_INTERVAL 5
@@ -23,25 +24,25 @@ TaskHandle_t smokeDetectTaskHandle = NULL;
 
 
 // MQTT Inililization //
-const char ssid[] = "ssid";
-const char pass[] = "pass";
+const char ssid[] = "";
+const char pass[] = "";
 
 WiFiClient netClient;
 MQTTClient client;
 
 unsigned long lastMillisMotionDetector = 0;
 
-const char* mqtt_server_ip = "100.64.00.00" ;
+const char* mqtt_server_ip = "broker.hivemq.com" ;
 
 // Topics for sensor data
 const char* temperature_topic = "/building1/room1/temp";
-const char* humidity_topic = "/building1/room1/humid";
 const char* mq_topic = "/building1/room1/mq";
 const char* motion_detect_topic = "/building1/room1/pir1";
 
 // Topics for actuators
 const char* smoke_alarm_topic = "/building1/room1/smokealarm";
 const char* light_topic = "/building1/room1/light";
+const char* hvac_topic = "/building1/room1/hvac";
 /////////////////
 
 // DHT Inililization ///
@@ -75,6 +76,8 @@ void setup()
   //
   pinMode(LED_RED_PIN,OUTPUT);
   pinMode(LED_YELLOW_PIN,OUTPUT);
+  pinMode(BUZZER,OUTPUT);
+  pinMode(BUZZER,LOW);
 
 }
 
@@ -183,7 +186,7 @@ bool get_temperature() {
   Serial.println(" T:" + String(newValues.temperature) + " H:" + String(newValues.humidity) + " I:" + String(heatIndex) + " D:" + String(dewPoint) + " " + comfortStatus);
   int buffer_size = 100;
   char message[buffer_size];
-  snprintf(message, buffer_size, "%f,%f,%f,%f,%s",newValues.temperature,newValues.humidity,heatIndex,dewPoint,comfortStatus);
+  snprintf(message, buffer_size, "%.1f,%.1f",newValues.temperature,newValues.humidity);
   publish_data_mqtt(temperature_topic,message);
   return true;
 }
@@ -206,13 +209,28 @@ void connect() {
 
   client.subscribe(smoke_alarm_topic);
   client.subscribe(light_topic);
+  client.subscribe(hvac_topic);
 
   // client.unsubscribe("/hello");
 }
 
 void messageReceived(String &topic, String &payload) {
   Serial.println("incoming: " + topic + " - " + payload);
-
+  if(!(strcmp("Light On",(char*)&payload))){
+      digitalWrite(LED_YELLOW_PIN,HIGH);
+  }else if (!(strcmp("Light Off",(char*)&payload))){
+      digitalWrite(LED_YELLOW_PIN,LOW);
+  }else if(!(strcmp("Fan On",(char*)&payload))){
+      digitalWrite(LED_RED_PIN,HIGH);
+  }else if (!(strcmp("Fan Off",(char*)&payload))){
+      digitalWrite(LED_RED_PIN,LOW);
+  }else if(!(strcmp("Alarm On",(char*)&payload))){
+      digitalWrite(BUZZER,HIGH);
+      Serial.println("Smoke Alarm on");
+  }else if (!(strcmp("Alarm Off",(char*)&payload))){
+      digitalWrite(BUZZER,LOW);
+      Serial.println("Smoke Alarm off");
+  }
   // Note: Do not use the client in the callback to publish, subscribe or
   // unsubscribe as it may cause deadlocks when other things arrive while
   // sending and receiving acknowledgments. Instead, change a global variable,
@@ -225,8 +243,6 @@ void detect_motion(){
   if (motionStateChange >= 0) {
       Serial.print("Motion Detection : ");
       Serial.println(motionStateChange);
-      digitalWrite(LED_YELLOW_PIN,motionStateChange);
-
       // Publish data at every 100 milisecond 
       if (millis() - lastMillisMotionDetector > 100) {
         lastMillisMotionDetector = millis();

@@ -32,8 +32,8 @@ SS/SDA (Slave select) <-> 5
 */
 //////////////////
 // MQTT Inililization //
-const char ssid[] = "";
-const char pass[] = "";
+const char ssid[] = "OnePlus 7";
+const char pass[] = "12345671";
 
 WiFiClient netClient;
 MQTTClient client;
@@ -143,7 +143,7 @@ void connect() {
   }
 
   Serial.print("\nconnecting...");
-  while (!client.connect("sciot", "public", "public")) {
+  while (!client.connect("sciot2", "public", "public")) {
     Serial.print(".");
     delay(1000);
   }
