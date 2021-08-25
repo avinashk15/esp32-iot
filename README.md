@@ -1,7 +1,7 @@
 # esp32-iot
 
 A iot project based on esp32 microcontroller. Repository contains two folders for different sensors and actuators.
-You can get data from sensors and can push that data to server using mqtt protocol. Similarely, Actuators commands can be sent from the server using
+You can get data from sensors and can push that data to server using mqtt protocol. Similarely, Actuator commands can be sent from the server using
 mqtt. 
 
 Import the code in PlatformIO to flash the code to microcontroller. You can use VScode with PlatformIO extension.
