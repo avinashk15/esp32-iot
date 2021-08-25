@@ -6,4 +6,4 @@ mqtt.
 
 You can use any mqtt broker. Here, I have used broker from "hivemq". 
 
-## Temeperature and Humidity (DHT11 sensor), Motion Detection(PIR sensor), Smoke Detection (MQ2 sensor), RFID and MQTT .
+### Temeperature and Humidity (DHT11 sensor), Motion Detection(PIR sensor), Smoke Detection (MQ2 sensor), RFID and MQTT .
